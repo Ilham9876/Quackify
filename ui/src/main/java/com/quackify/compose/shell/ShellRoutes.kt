@@ -197,13 +197,14 @@ internal fun ShellSearchRoute(
         onCategoryClick = { category ->
             env.navController.pushCurrentState()
             env.active.categoryTitle = category.title
+            env.active.categoryUri = category.uri
             env.active.categoryColor = category.color
             if (category.uri.startsWith("spotify:page:")) {
                 env.navController.currentScreen = ShellScreen.BROWSE
                 onOpenBrowse?.invoke(category.uri)
             } else {
                 env.navController.currentScreen = ShellScreen.CATEGORY
-                onOpenCategory?.invoke(category.title)
+                onOpenCategory?.invoke(category.uri)
             }
         },
         onAlbumClick = env.openAlbum,
@@ -476,6 +477,7 @@ internal fun ShellCategoryRoute(
 ) {
     EncoreCategoryScreen(
         categoryTitle = env.active.categoryTitle,
+        categoryUri = env.active.categoryUri,
         categoryColor = env.active.categoryColor,
         onBackClick = env.handleBack,
         onPlaylistClick = { title, uri ->
@@ -497,6 +499,7 @@ internal fun ShellCategoryRoute(
         onSubcategoryClick = { subcategory ->
             env.navController.pushCurrentState()
             env.active.categoryTitle = subcategory
+            env.active.categoryUri = ""
             env.active.categoryColor = getCategoryColor(subcategory)
             env.navController.currentScreen = ShellScreen.CATEGORY
         },
@@ -541,6 +544,7 @@ internal fun ShellSettingsRoute(
         updateVersion = updateVersion,
         onCheckUpdates = { onCheckUpdates?.invoke() },
         toastState = env.toastState,
+        activeStreamKey = env.playbackState?.streamSource.orEmpty(),
     )
 }
 
@@ -801,6 +805,17 @@ internal fun ShellEpisodeRoute(
                 env.playerListener?.onPlayEpisode(current.uri, current.showUri, current.video)
             }
         },
+        onChapterClick = { current, chapter ->
+            // Tapping a chapter starts the episode inside it when it is not
+            // the one playing; when it already is, the tap is just a seek.
+            if (env.playbackState?.trackUri == current.uri) {
+                env.playerListener?.onSeek(chapter.startMs)
+            } else {
+                env.playerListener?.onPlayEpisodeAtPosition(
+                    current.uri, current.showUri, current.video, chapter.startMs,
+                )
+            }
+        },
         onShowClick = { uri -> env.openShow(uri) }
     )
 }
@@ -860,6 +875,10 @@ internal fun ShellProfileRoute(
     contexts: List<ProfileContextCard>,
     loading: Boolean,
     loadFailed: Boolean,
+    isFollowingUser: Boolean = false,
+    isFollowBusy: Boolean = false,
+    followsYou: Boolean = false,
+    onFollowUser: (() -> Unit)? = null,
     onRetry: (() -> Unit)?,
     onLoadProfileFollows: (() -> Unit)?,
 ) {
@@ -870,6 +889,10 @@ internal fun ShellProfileRoute(
         contexts = contexts,
         loading = loading,
         loadFailed = loadFailed,
+        isFollowingUser = isFollowingUser,
+        isFollowBusy = isFollowBusy,
+        followsYou = followsYou,
+        onFollowUserClick = onFollowUser,
         onRetry = { onRetry?.invoke() },
         onBack = env.handleBack,
         currentTrackUri = env.playbackState?.trackUri.orEmpty(),

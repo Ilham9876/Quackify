@@ -84,6 +84,7 @@ data class BackStackItem(
     val key: String = "",
     val screen: ShellScreen,
     val categoryTitle: String = "",
+    val categoryUri: String = "",
     val playlistTitle: String = "",
     val playlistUri: String = "",
     val playlistCoverUrl: String? = null,
@@ -246,6 +247,10 @@ interface ComposePlayerListener {
     fun onPlaybackSpeed(speed: Float) {}
     fun onSkipSeek(deltaMs: Long) {}
     fun onPlayEpisode(uri: String, contextUri: String, hasVideo: Boolean) {}
+    /** Starts the episode (or seeks it, when it is already the playing one) at [positionMs]. */
+    fun onPlayEpisodeAtPosition(uri: String, contextUri: String, hasVideo: Boolean, positionMs: Long) {
+        onPlayEpisode(uri, contextUri, hasVideo)
+    }
     fun onSleepTimer(option: SleepTimerOption) {}
 }
 
@@ -317,6 +322,7 @@ internal class ShellActiveEntity {
     var artistUri by mutableStateOf("")
     var artistAvatarUrl by mutableStateOf<String?>(null)
     var categoryTitle by mutableStateOf("")
+    var categoryUri by mutableStateOf("")
     var categoryColor by mutableStateOf(Color(0xFF148A08))
     var showUri by mutableStateOf("")
     var episodeUri by mutableStateOf("")

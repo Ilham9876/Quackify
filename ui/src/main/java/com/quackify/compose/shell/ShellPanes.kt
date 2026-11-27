@@ -64,6 +64,7 @@ import com.quackify.backend.model.AlbumDetail
 import com.quackify.backend.model.ArtistDetail
 import com.quackify.backend.model.BrowseCard
 import com.quackify.backend.model.BrowsePage
+import com.quackify.backend.model.ChapterSpan
 import com.quackify.backend.model.CollectionDetail
 import com.quackify.backend.model.EpisodeDetail
 import com.quackify.backend.model.EpisodeRow
@@ -247,6 +248,7 @@ internal fun ShellSettingsPane(
     updateVersion: String? = null,
     onCheckUpdates: () -> Unit = {},
     toastState: QuackifyToastState? = null,
+    activeStreamKey: String = "",
 ) {
     SettingsScreen(
         onBackClick = onBackClick,
@@ -269,7 +271,8 @@ internal fun ShellSettingsPane(
         updateError = updateError,
         updateVersion = updateVersion,
         onCheckUpdates = onCheckUpdates,
-        toastState = toastState
+        toastState = toastState,
+        activeStreamKey = activeStreamKey
     )
 }
 
@@ -355,6 +358,10 @@ internal fun ShellProfilePane(
     contexts: List<ProfileContextCard>,
     loading: Boolean,
     loadFailed: Boolean,
+    isFollowingUser: Boolean = false,
+    isFollowBusy: Boolean = false,
+    followsYou: Boolean = false,
+    onFollowUserClick: (() -> Unit)? = null,
     onRetry: () -> Unit,
     onBack: () -> Unit,
     currentTrackUri: String,
@@ -376,6 +383,10 @@ internal fun ShellProfilePane(
         contexts = contexts,
         loading = loading,
         loadFailed = loadFailed,
+        isFollowingUser = isFollowingUser,
+        isFollowBusy = isFollowBusy,
+        followsYou = followsYou,
+        onFollowUserClick = onFollowUserClick,
         onRetry = onRetry,
         onBackClick = onBack,
         currentTrackUri = currentTrackUri,
@@ -1096,6 +1107,7 @@ internal fun ShellEpisodePane(
     onRetry: (String) -> Unit,
     onPlayPause: () -> Unit,
     onPlay: () -> Unit = {},
+    onChapterClick: ((EpisodeDetail, ChapterSpan) -> Unit)? = null,
     onShowClick: (String) -> Unit
 ) {
     if (episode == null) {
@@ -1121,6 +1133,7 @@ internal fun ShellEpisodePane(
             onBackClick = onBack,
             onPlayPauseClick = onPlayPause,
             onPlayClick = onPlay,
+            onChapterClick = onChapterClick?.let { handler -> { chapter -> handler(episode, chapter) } },
             onShowClick = { onShowClick(episode.showUri) }
         )
     }
